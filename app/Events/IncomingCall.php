@@ -6,11 +6,19 @@ use App\Http\Resources\CallResource;
 use App\Models\Call;
 use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Broadcasting\PrivateChannel;
-use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
+use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 
-class IncomingCall implements ShouldBroadcast
+/**
+ * ShouldBroadcastNow (not ShouldBroadcast) — see backend compatibility
+ * audit: the queued version silently never arrives if no `queue:work`
+ * process happens to be running (very easy to forget locally — reverb:start,
+ * serve, AND queue:work are three separate processes). A ringing call is
+ * exactly the kind of time-critical, low-volume event that shouldn't ever
+ * depend on a worker being alive, same reasoning as WebRTCOffer/Answer/ICE.
+ */
+class IncomingCall implements ShouldBroadcastNow
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 

@@ -9,7 +9,6 @@ use App\Models\User;
 use App\Services\ConversationService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
 class ConversationController extends Controller
 {
@@ -17,14 +16,14 @@ class ConversationController extends Controller
         protected ConversationService $conversations,
     ) {}
 
-    public function index(Request $request): AnonymousResourceCollection
+    public function index(Request $request): JsonResponse
     {
         $conversations = $this->conversations->listForUser($request->user());
 
-        // ::collection() on a LengthAwarePaginator automatically preserves
-        // pagination meta (current_page, last_page, etc.) in the response —
-        // this is what the frontend's PaginatedResponse<T> type expects.
-        return ConversationResource::collection($conversations);
+        // See Controller::paginated() — flattens Laravel's default nested
+        // {data, links, meta} resource-collection shape to match the
+        // frontend's PaginatedResponse<T> type exactly.
+        return response()->json($this->paginated($conversations, ConversationResource::class));
     }
 
     public function store(StoreConversationRequest $request): JsonResponse

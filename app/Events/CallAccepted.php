@@ -5,11 +5,16 @@ namespace App\Events;
 use App\Models\Call;
 use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Broadcasting\PresenceChannel;
-use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
+use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 
-class CallAccepted implements ShouldBroadcast
+/**
+ * ShouldBroadcastNow — same fix and reasoning as IncomingCall.php: these
+ * are time-critical, low-volume events that must never sit waiting on a
+ * queue worker.
+ */
+class CallAccepted implements ShouldBroadcastNow
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 

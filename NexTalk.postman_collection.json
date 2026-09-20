@@ -1,0 +1,481 @@
+{
+  "info": {
+    "name": "NexTalk API",
+    "description": "Full API collection for the NexTalk real-time communication project (Laravel + Sanctum + Reverb). Import this alongside the NexTalk backend scaffold.\n\nSetup:\n1. Set `base_url` (default: http://localhost:8000/api).\n2. Run Auth > Register or Login — the response's `token` is auto-saved to `{{token}}` via the collection's test script.\n3. All protected requests use Bearer `{{token}}` automatically (inherited from collection auth).",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_postman_id": "nextalk-api-collection"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      { "key": "token", "value": "{{token}}", "type": "string" }
+    ]
+  },
+  "variable": [
+    { "key": "base_url", "value": "http://localhost:8000/api", "type": "string" },
+    { "key": "token", "value": "", "type": "string" },
+    { "key": "username", "value": "mustafa", "type": "string" },
+    { "key": "other_user_id", "value": "2", "type": "string" },
+    { "key": "conversation_id", "value": "1", "type": "string" },
+    { "key": "message_id", "value": "1", "type": "string" },
+    { "key": "call_id", "value": "1", "type": "string" }
+  ],
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Register",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"mustafa\",\n  \"name\": \"Mustafa Nouh\",\n  \"email\": \"mustafa@example.com\",\n  \"phone\": \"+201234567890\",\n  \"password\": \"Password123\",\n  \"password_confirmation\": \"Password123\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/register",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "register"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const json = pm.response.json();",
+                  "    if (json.token) pm.collectionVariables.set('token', json.token);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Login",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"identifier\": \"mustafa\",\n  \"password\": \"Password123\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/login",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "login"]
+            },
+            "description": "`identifier` can be either the username or the email (never phone — per spec, phone is not used for auth lookups)."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const json = pm.response.json();",
+                  "    if (json.token) pm.collectionVariables.set('token', json.token);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "url": {
+              "raw": "{{base_url}}/auth/logout",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "logout"]
+            }
+          }
+        },
+        {
+          "name": "Get Authenticated User (me)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/auth/me",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "me"]
+            }
+          }
+        },
+        {
+          "name": "Forgot Password",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"mustafa@example.com\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/forgot-password",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "forgot-password"]
+            }
+          }
+        },
+        {
+          "name": "Reset Password",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"token\": \"<reset-token-from-email>\",\n  \"email\": \"mustafa@example.com\",\n  \"password\": \"NewPassword123\",\n  \"password_confirmation\": \"NewPassword123\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/reset-password",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "reset-password"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Users",
+      "item": [
+        {
+          "name": "Get My Profile",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/users/me",
+              "host": ["{{base_url}}"],
+              "path": ["users", "me"]
+            }
+          }
+        },
+        {
+          "name": "Update My Profile",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Mustafa Nouh Updated\",\n  \"username\": \"mustafa_nouh\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/users/me",
+              "host": ["{{base_url}}"],
+              "path": ["users", "me"]
+            },
+            "description": "Use multipart/form-data instead of JSON when uploading `avatar` (image file)."
+          }
+        },
+        {
+          "name": "Update My Profile (with Avatar)",
+          "request": {
+            "method": "PATCH",
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                { "key": "name", "value": "Mustafa Nouh", "type": "text" },
+                { "key": "avatar", "type": "file", "src": [] }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/users/me",
+              "host": ["{{base_url}}"],
+              "path": ["users", "me"]
+            }
+          }
+        },
+        {
+          "name": "Search Users",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/users/search?q=mus",
+              "host": ["{{base_url}}"],
+              "path": ["users", "search"],
+              "query": [{ "key": "q", "value": "mus" }]
+            },
+            "description": "Searches by username (primary), with optional email/phone matching. Minimum 2 characters."
+          }
+        },
+        {
+          "name": "Find User by Username",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/users/{{username}}",
+              "host": ["{{base_url}}"],
+              "path": ["users", "{{username}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Conversations",
+      "item": [
+        {
+          "name": "List My Conversations",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/conversations",
+              "host": ["{{base_url}}"],
+              "path": ["conversations"]
+            }
+          }
+        },
+        {
+          "name": "Create/Get Private Conversation",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"user_id\": {{other_user_id}}\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/conversations",
+              "host": ["{{base_url}}"],
+              "path": ["conversations"]
+            },
+            "description": "Returns the existing private conversation between the two users if one already exists, instead of creating a duplicate."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const json = pm.response.json();",
+                  "    if (json.id) pm.collectionVariables.set('conversation_id', json.id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get Conversation",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/conversations/{{conversation_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["conversations", "{{conversation_id}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Messages",
+      "item": [
+        {
+          "name": "Get Message History",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/conversations/{{conversation_id}}/messages?per_page=30",
+              "host": ["{{base_url}}"],
+              "path": ["conversations", "{{conversation_id}}", "messages"],
+              "query": [{ "key": "per_page", "value": "30" }]
+            }
+          }
+        },
+        {
+          "name": "Send Text Message",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"type\": \"text\",\n  \"body\": \"Hello there!\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/conversations/{{conversation_id}}/messages",
+              "host": ["{{base_url}}"],
+              "path": ["conversations", "{{conversation_id}}", "messages"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const json = pm.response.json();",
+                  "    if (json.id) pm.collectionVariables.set('message_id', json.id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Send Image/File Message",
+          "request": {
+            "method": "POST",
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                { "key": "type", "value": "image", "type": "text" },
+                { "key": "body", "value": "optional caption", "type": "text" },
+                { "key": "attachment", "type": "file", "src": [] }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/conversations/{{conversation_id}}/messages",
+              "host": ["{{base_url}}"],
+              "path": ["conversations", "{{conversation_id}}", "messages"]
+            },
+            "description": "`type` must be `image` or `file`. Multipart upload — MIME and size validated server-side (max 20MB)."
+          }
+        },
+        {
+          "name": "Delete Message",
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "{{base_url}}/messages/{{message_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["messages", "{{message_id}}"]
+            },
+            "description": "Only the original sender may delete their own message."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Calls",
+      "item": [
+        {
+          "name": "Start Call",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"type\": \"video\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/conversations/{{conversation_id}}/calls",
+              "host": ["{{base_url}}"],
+              "path": ["conversations", "{{conversation_id}}", "calls"]
+            },
+            "description": "`type` is `audio` or `video`. Triggers an IncomingCall broadcast to the other participant's private channel."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const json = pm.response.json();",
+                  "    if (json.id) pm.collectionVariables.set('call_id', json.id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Accept Call",
+          "request": {
+            "method": "POST",
+            "url": {
+              "raw": "{{base_url}}/calls/{{call_id}}/accept",
+              "host": ["{{base_url}}"],
+              "path": ["calls", "{{call_id}}", "accept"]
+            },
+            "description": "Must be called by the callee, not the caller. Call must be in 'ringing' status."
+          }
+        },
+        {
+          "name": "Reject Call",
+          "request": {
+            "method": "POST",
+            "url": {
+              "raw": "{{base_url}}/calls/{{call_id}}/reject",
+              "host": ["{{base_url}}"],
+              "path": ["calls", "{{call_id}}", "reject"]
+            }
+          }
+        },
+        {
+          "name": "End Call",
+          "request": {
+            "method": "POST",
+            "url": {
+              "raw": "{{base_url}}/calls/{{call_id}}/end",
+              "host": ["{{base_url}}"],
+              "path": ["calls", "{{call_id}}", "end"]
+            },
+            "description": "Either participant may end an active call. A ringing call that's ended becomes 'missed' instead of 'ended'."
+          }
+        }
+      ]
+    },
+    {
+      "name": "WebRTC Signaling",
+      "description": "Not in the original spec's API list — added because WebRTCOffer/Answer/ICECandidate broadcast events need a trigger. See SignalingController.php for rationale. All routes require the caller to be a participant of the call's conversation.",
+      "item": [
+        {
+          "name": "Send SDP Offer",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"sdp\": {\n    \"type\": \"offer\",\n    \"sdp\": \"v=0\\r\\no=- ...\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/calls/{{call_id}}/signal/offer",
+              "host": ["{{base_url}}"],
+              "path": ["calls", "{{call_id}}", "signal", "offer"]
+            }
+          }
+        },
+        {
+          "name": "Send SDP Answer",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"sdp\": {\n    \"type\": \"answer\",\n    \"sdp\": \"v=0\\r\\no=- ...\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/calls/{{call_id}}/signal/answer",
+              "host": ["{{base_url}}"],
+              "path": ["calls", "{{call_id}}", "signal", "answer"]
+            }
+          }
+        },
+        {
+          "name": "Send ICE Candidate",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"candidate\": {\n    \"candidate\": \"candidate:...\",\n    \"sdpMid\": \"0\",\n    \"sdpMLineIndex\": 0\n  }\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/calls/{{call_id}}/signal/ice-candidate",
+              "host": ["{{base_url}}"],
+              "path": ["calls", "{{call_id}}", "signal", "ice-candidate"]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

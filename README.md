@@ -78,13 +78,24 @@ php artisan migrate
 php artisan reverb:start
 ```
 
-في تيرمنال تاني، شغّل الـ queue worker (لازم عشان MessageSent وباقي
-الـ ShouldBroadcast events بتتبعت عن طريق الـ queue، ماعدا أحداث
-WebRTC signaling اللي بتستخدم ShouldBroadcastNow فبتتبعت فورًا):
+في تيرمنال تاني، شغّل الـ queue worker (لازم عشان `MessageSent` و
+`MessageDeleted` يتبعتوا — دول لسه `ShouldBroadcast` عادي لأن الرسائل
+مش حساسة للـ latency بنفس درجة المكالمات. **كل أحداث المكالمات**
+(`IncomingCall`, `CallAccepted`, `CallRejected`, `CallEnded`) **و**
+WebRTC signaling (`WebRTCOffer/Answer/ICECandidate`) بقوا `ShouldBroadcastNow`
+دلوقتي — بتتبعت فورًا من غير ما تعدي على الـ queue خالص، فمش هتفشل حتى
+لو نسيت تشغّل الـ worker ده):
 
 ```bash
 php artisan queue:work
 ```
+
+> ⚠️ **لو المكالمات كانت مش بتوصل للطرف التاني قبل كده**: السبب كان إن
+> `IncomingCall`/`CallAccepted`/`CallRejected`/`CallEnded` كانوا
+> `ShouldBroadcast` (queued) — يعني لو نسيت تشغّل `queue:work` في
+> تيرمنال منفصل، الحدث كان بيقعد في الـ queue من غير ما يتبعت خالص.
+> اتصلحت في آخر تحديث للباك اند — دلوقتي مش محتاجين الـ worker عشان
+> المكالمات تشتغل، بس لسه محتاجينه عشان الرسائل.
 
 ## 7. تشغيل السيرفر
 

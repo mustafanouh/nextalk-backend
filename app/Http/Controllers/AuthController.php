@@ -31,9 +31,19 @@ class AuthController extends Controller
         // NOTE: this dispatches VerifyEmailNotification (User::sendEmailVerificationNotification
         // override) — see backend update plan #1 for why the default Laravel
         // notification used to crash this entire endpoint with a 500 right here.
-        // event(new Registered($user));
+        event(new Registered($user));
 
         $token = $user->createToken('api')->plainTextToken;
+
+        // UserResource only exposes email/phone when $request->user()->id
+        // matches the resource's id. register()/login() sit OUTSIDE the
+        // auth:sanctum middleware group (no token exists yet to
+        // authenticate with), so $request->user() is null by default and
+        // that check silently fails — email/phone would be missing from
+        // the very first response the frontend ever gets. Resolving the
+        // user manually here (we just created/verified them) fixes it
+        // without weakening the check for every other endpoint.
+        $request->setUserResolver(fn () => $user);
 
         return response()->json([
             'user' => new UserResource($user),
@@ -56,6 +66,10 @@ class AuthController extends Controller
         }
 
         $token = $user->createToken('api')->plainTextToken;
+
+        // Same reasoning as register() above — login() is also public
+        // (outside auth:sanctum), so $request->user() is null by default.
+        $request->setUserResolver(fn () => $user);
 
         return response()->json([
             'user' => new UserResource($user),
