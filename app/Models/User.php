@@ -13,6 +13,7 @@ use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
 use Spatie\Image\Enums\Fit;
+use Carbon\Carbon;
 
 class User extends Authenticatable implements MustVerifyEmail, HasMedia
 {
@@ -100,15 +101,30 @@ class User extends Authenticatable implements MustVerifyEmail, HasMedia
             ->nonQueued(); // small enough to do inline; flip to queued() if this gets slow
     }
 
-    public function getAvatarUrlAttribute(): ?string
-    {
-        return $this->getFirstMediaUrl('avatar') ?: null;
+  public function getAvatarUrlAttribute(): ?string
+{
+    if (! $this->getFirstMedia('avatar')) {
+        return null;
     }
 
-    public function getAvatarThumbUrlAttribute(): ?string
-    {
-        return $this->getFirstMediaUrl('avatar', 'thumb') ?: null;
+    return $this->getFirstTemporaryUrl(
+        Carbon::now()->addMinutes(30),
+        'avatar'
+    );
+}
+
+public function getAvatarThumbUrlAttribute(): ?string
+{
+    if (! $this->getFirstMedia('avatar')) {
+        return null;
     }
+
+    return $this->getFirstTemporaryUrl(
+        Carbon::now()->addMinutes(30),
+        'avatar',
+        'thumb'
+    );
+}
 
     // ── Custom notifications ─────────────────────────────────
     // Overrides the traits' defaults (AuthenticatableTrait /
